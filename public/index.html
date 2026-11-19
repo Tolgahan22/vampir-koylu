@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vampir Köylü</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Avenir Next", "Segoe UI", Arial, sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  #basla { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: rgba(5,4,12,0.82); color: #fff; cursor: pointer; z-index: 5; text-align: center; padding: 20px; }
+  #basla b { font-size: 34px; color: #ff6b78; }
+  #basla span { font-size: 19px; color: #cfc9ea; max-width: 420px; line-height: 1.4; }
+  #basla .dugme { margin-top: 10px; background: #d6384b; color: #fff; font-weight: 800; font-size: 22px; padding: 14px 30px; border-radius: 40px; }
+  #test { display: none; position: fixed; left: 10px; top: 10px; z-index: 6; background: rgba(20,18,32,0.95); color: #fff; padding: 12px; border-radius: 12px; width: 280px; font-size: 14px; }
+  #test input { width: 100%; box-sizing: border-box; margin: 4px 0; padding: 6px; border-radius: 6px; border: 0; }
+  #test button { margin: 3px 2px; padding: 6px 8px; border: 0; border-radius: 6px; background: #3a3456; color: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="ekran"></canvas>
+<div id="basla">
+  <b>🦇 Vampir Köylü</b>
+  <span>Ses ve müzik için bir kere tıkla.<br>Tarayıcılar ilk tıklamadan önce ses çalmaya izin vermiyor.</span>
+  <div class="dugme">🔊 Başlat</div>
+</div>
+<div id="test">
+  <b>Test paneli (D ile kapat)</b><br>
+  <input id="tkim" placeholder="kullanıcı adı" value="deneme_kullanici">
+  <input id="tmetin" placeholder="yorum: ?Hasan neredeydin / 3">
+  <button data-o="yorum">💬 Yorum</button>
+  <button data-o="begeni">❤️ +50 beğeni</button>
+  <button data-o="takip">➕ Takip</button>
+  <button data-o="hediye" data-e="1">🌹 Hediye</button>
+  <button data-o="hediye" data-e="100">🎆 Büyük hediye</button>
+  <button data-o="sim">🤖 Sahte izleyiciler aç/kapa</button>
+  <button data-o="sonraki">⏭ Sonraki aşama</button>
+</div>
+<script type="module" src="js/ekran.js"></script>
+</body>
+</html>

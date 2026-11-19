@@ -1,0 +1,16 @@
+{
+  "name": "vampir-koylu",
+  "version": "1.0.0",
+  "description": "TikTok LIVE interaktif Vampir Köylü oyunu",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sesler": "node hazirla.js",
+    "sesler-tahmin": "node hazirla.js --tahmin"
+  },
+  "dependencies": {
+    "tiktok-live-connector": "^2.5.0",
+    "ws": "^8.23.0"
+  }
+}

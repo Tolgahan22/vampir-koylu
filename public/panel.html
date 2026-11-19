@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Vampir Köylü · Panel</title>
+<style>
+  :root { --bg: #0f0d1a; --kart: #1b1830; --cizgi: #2e2a4a; --yazi: #ece9f7; --soluk: #a49fc2; --kirmizi: #e0475a; --sari: #ffcf6b; --yesil: #5ccf86; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: var(--bg); color: var(--yazi); font: 15px/1.35 -apple-system, "Segoe UI", Arial, sans-serif; padding: 10px 10px 80px; }
+  .kart { background: var(--kart); border: 1px solid var(--cizgi); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+  h2 { font-size: 13px; letter-spacing: .08em; color: var(--soluk); margin: 0 0 8px; text-transform: uppercase; }
+  .ust { display: flex; justify-content: space-between; align-items: center; }
+  .faz { font-size: 24px; font-weight: 800; }
+  .sure { font-size: 34px; font-weight: 900; color: var(--sari); }
+  .rozetler { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .rozet { font-size: 12px; padding: 4px 8px; border-radius: 20px; background: #2a2645; color: var(--soluk); }
+  .rozet.iyi { background: #173a29; color: #8ff0b5; } .rozet.kotu { background: #3e1820; color: #ffa2ad; }
+  button { font: inherit; font-weight: 700; color: #fff; background: #3a3456; border: 0; border-radius: 12px; padding: 12px 10px; cursor: pointer; }
+  button:active { transform: scale(.97); }
+  .izgara { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .buyuk { background: var(--kirmizi); }
+  .soru { display: flex; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--cizgi); }
+  .soru:last-child { border-bottom: 0; }
+  .soru .m { flex: 1; min-width: 0; }
+  .soru .kim { font-size: 12px; color: var(--soluk); }
+  .soru .hedef { color: var(--sari); font-weight: 800; }
+  .soru button { padding: 10px 12px; }
+  .sor { background: var(--yesil); color: #062; }
+  .bos { color: var(--soluk); font-style: italic; }
+  .satir { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; }
+  .anahtar { position: relative; width: 52px; height: 30px; background: #3a3456; border-radius: 30px; flex: none; }
+  .anahtar.acik { background: var(--yesil); }
+  .anahtar::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: .15s; }
+  .anahtar.acik::after { left: 25px; }
+  select, input[type=text] { font: inherit; background: #120f22; color: var(--yazi); border: 1px solid var(--cizgi); border-radius: 10px; padding: 10px; width: 100%; }
+  #vampir { background: #4a1020; width: 100%; font-size: 17px; padding: 16px; user-select: none; -webkit-user-select: none; }
+  .konusma { font-size: 14px; color: var(--soluk); min-height: 40px; }
+  .konusma b { color: var(--yazi); }
+  .oylar div { display: flex; justify-content: space-between; padding: 3px 0; }
+  .kilit { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; text-align: center; padding: 30px; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="kilit" id="kilit">Bağlanıyor...</div>
+
+<div class="kart">
+  <div class="ust"><div><div class="faz" id="faz">—</div><div id="baslik" style="color:var(--soluk)"></div></div><div class="sure" id="sure">—</div></div>
+  <div class="rozetler" id="rozetler"></div>
+</div>
+
+<div class="kart">
+  <div class="izgara">
+    <button class="buyuk" data-k="sonraki">⏭ Sonraki</button>
+    <button data-k="sureEkle" data-v="30">+30 sn</button>
+    <button data-k="duraklat" id="durdur">⏸ Durdur</button>
+  </div>
+</div>
+
+<div class="kart" id="inceleme" hidden></div>
+<div class="kart">
+  <button id="vampir">👁 Vampir kim? (basılı tut)</button>
+</div>
+
+<div class="kart">
+  <h2>Şu an konuşan</h2>
+  <div class="konusma" id="konusma">—</div>
+</div>
+
+<div class="kart">
+  <h2 id="soruBaslik">Soru kuyruğu</h2>
+  <div id="sorular"><div class="bos">Sorgunun ilk 10 saniyesinde bir soru seçilebilir.</div></div>
+</div>
+
+<div class="kart" id="oyKart" style="display:none">
+  <h2>Oylar</h2>
+  <div class="oylar" id="oylar"></div>
+</div>
+
+<div class="kart">
+  <h2>Ayarlar</h2>
+  <div class="satir"><span>Otomatik soru seç<br><small style="color:var(--soluk)">8. saniyeden itibaren ilk geçerli soru seçilir</small></span><div class="anahtar" id="otoSoru"></div></div>
+  <div class="satir"><span>Soruyu anlatıcı sesli okusun</span>
+    <select id="soruOku" style="width:150px"><option value="secilen">Sadece seçtiklerim</option><option value="hepsi">Hepsi</option><option value="hic">Hiçbiri</option></select></div>
+  <div class="satir"><span>İzleyici isimlerini sesli oku<br><small style="color:var(--soluk)">Okunamayan isimler zaten okunmaz, ekranda görünür</small></span><div class="anahtar" id="isimOku"></div></div>
+  <div class="satir"><span>Mac sesi (ElevenLabs yoksa)</span><div class="anahtar" id="tts"></div></div>
+  <div class="satir"><span>🤖 Sahte izleyiciler (test)</span><div class="anahtar" id="sim"></div></div>
+</div>
+
+<div class="kart">
+  <h2>Anlatıcıya söylet</h2>
+  <div style="display:flex;gap:8px"><input type="text" id="anlat" placeholder="Örn: Hoş geldiniz köylüler!"><button id="anlatGonder">📢</button></div>
+</div>
+
+<div class="kart">
+  <h2>Senaryo</h2>
+  <select id="senaryo"></select>
+  <div class="izgara" style="grid-template-columns:1fr 1fr;margin-top:8px">
+    <button id="senaryoSec">Sıradaki tur bu</button>
+    <button data-k="yeniTur">🔄 Turu baştan başlat</button>
+  </div>
+</div>
+
+<script>
+const k = new URLSearchParams(location.search).get('k');
+const $ = id => document.getElementById(id);
+let ws, d = null, dZaman = 0, hataVar = false;
+const FAZ = { bekleme: 'Lobi', gece: 'Gece', sabah: 'Sabah', sorgu: 'Sorgu', oylama: 'Oylama', kilit: 'Kule', aksam: 'Akşam', final: 'Final' };
+const AD = { muhtar: 'Rıza', bakkal: 'Hasan', ebe: 'Fatma', coban: 'Ali', ogretmen: 'Selin', demirci: 'Kemal', anlatici: 'Anlatıcı' };
+const komut = (k2, v) => ws && ws.readyState === 1 && ws.send(JSON.stringify({ tip: 'komut', k: k2, v }));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function baglan() {
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+  ws.onopen = () => { ws.send(JSON.stringify({ tip: 'merhaba', rol: 'panel', anahtar: k })); $('kilit').style.display = 'none'; };
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.tip === 'hata') { hataVar = true; $('kilit').textContent = m.metin + ' — terminaldeki panel adresini kullan.'; $('kilit').style.display = 'flex'; }
+    if (m.tip === 'durum') { d = m.d; dZaman = performance.now(); ciz(); }
+    if (m.tip === 'konusma') $('konusma').innerHTML = `<b>${AD[m.item.kim] || m.item.kim}:</b> ${esc(m.item.metin)}` + (m.ses ? ' 🔊' : ' 🗣');
+  };
+  ws.onclose = () => { if (hataVar) return; $('kilit').textContent = 'Bağlantı koptu, tekrar bağlanıyor...'; $('kilit').style.display = 'flex'; setTimeout(baglan, 1500); };
+}
+
+let sonSoruImza = '';
+function ciz() {
+  if (!d) return;
+  $('faz').textContent = FAZ[d.faz.ad] + (d.gun ? ` · ${d.gun}. gün` : '');
+  $('baslik').textContent = d.senaryo.baslik + ' · ' + (d.ters || '');
+  $('durdur').textContent = d.faz.duraklat ? '▶ Devam' : '⏸ Durdur';
+  const adim = d.inceleme;
+  $('inceleme').hidden = !adim;
+  if (adim) $('inceleme').textContent = adim.soru + '  ' + adim.secenekler.map((ad, i) => adim.tuslar[i] + ' · ' + ad + ' (' + adim.say[i] + ' oy)').join('  /  ');
+  const s = d.sunucu || {};
+  const rz = (t, iyi) => `<span class="rozet ${iyi === true ? 'iyi' : iyi === false ? 'kotu' : ''}">${esc(t)}</span>`;
+  $('rozetler').innerHTML = rz('TikTok: ' + s.tiktok, /bağlı ✓/.test(s.tiktok || '')) + rz('Ses: ' + s.eleven, /^açık/.test(s.eleven || '')) +
+    rz('GPT: ' + s.gpt, s.gpt !== 'kapalı') + rz('Ekran: ' + s.ekran, s.ekran > 0) + rz('Köylü: ' + d.izleyici.toplam) +
+    (s.elevenKarakter ? rz('ElevenLabs bu oturum: ' + s.elevenKarakter.toLocaleString('tr-TR') + ' karakter') : '');
+  $('otoSoru').classList.toggle('acik', !!d.ayar.otoSoru);
+  $('isimOku').classList.toggle('acik', !!d.ayar.isimOku);
+  $('tts').classList.toggle('acik', !!s.tts);
+  $('sim').classList.toggle('acik', !!s.sim);
+  if (document.activeElement !== $('soruOku')) $('soruOku').value = d.ayar.soruOku;
+  // sorular
+  const pencere = d.soruPenceresi;
+  const imza = [d.faz.ad, pencere?.acik, pencere?.secilen?.metin, d.panelAdayi, ...d.sorular.map(q => q.id)].join('|');
+  if (imza !== sonSoruImza) {
+    sonSoruImza = imza;
+    $('soruBaslik').textContent = `Soru kuyruğu (${d.sorular.length})`;
+    if (!d.sorular.length) {
+      let bilgi = 'Sorular sorgunun başında alınır.';
+      if (pencere?.secilen) bilgi = 'Seçilen soru · ' + pencere.secilen.metin;
+      else if (pencere) bilgi = pencere.acik ? 'Seyirci sorusu bekleniyor.' : 'Soru süresi doldu.';
+      $('sorular').innerHTML = `<div class="bos">${esc(bilgi)}</div>`;
+    }
+    else $('sorular').innerHTML = d.sorular.slice().reverse().map(q => `
+      <div class="soru"><div class="m"><div class="kim">@${esc(q.ad)} → <span class="hedef">${AD[q.hedef]}</span></div>${esc(q.metin)}</div>
+      <button class="sor" data-sor="${q.id}">${q.id === d.panelAdayi ? '✓ Seçildi' : 'Seç'}</button><button data-sil="${q.id}">✕</button><button data-sus="${esc(q.uid)}" title="Sustur">🔇</button></div>`).join('');
+  }
+  // oylar
+  $('oyKart').style.display = d.oy ? 'block' : 'none';
+  if (d.oy) $('oylar').innerHTML = d.karakterler.filter(x => x.durum !== 'suruldu').map(x => `<div><span>${x.no}. ${x.ad}${x.id === d.vampir ? ' 🦇' : ''}</span><b>${d.oy.say[x.id] ?? 0}</b></div>`).join('') + `<div style="color:var(--soluk)"><span>Toplam</span><span>${d.oy.toplam}</span></div>`;
+  // senaryolar
+  if (!$('senaryo').options.length) $('senaryo').innerHTML = d.senaryolar.map(x => `<option value="${x.id}">${esc(x.baslik)} — vampir: ${AD[x.vampir]} (${esc(x.ters)})</option>`).join('');
+}
+
+setInterval(() => {
+  if (!d) return;
+  const gec = d.faz.gecen + (d.faz.duraklat ? 0 : performance.now() - dZaman);
+  $('sure').textContent = Math.max(0, Math.ceil((d.faz.sure - gec) / 1000));
+}, 250);
+
+document.body.addEventListener('click', e => {
+  const b = e.target.closest('button,.anahtar'); if (!b) return;
+  if (b.dataset.k) komut(b.dataset.k, b.dataset.v ? +b.dataset.v : undefined);
+  if (b.dataset.sor) komut('soruSec', +b.dataset.sor);
+  if (b.dataset.sil) komut('soruSil', +b.dataset.sil);
+  if (b.dataset.sus && confirm('Bu kullanıcının soruları yok sayılsın mı?')) komut('sustur', b.dataset.sus);
+  if (b.id === 'otoSoru') komut('ayar', { k: 'otoSoru', v: !d.ayar.otoSoru });
+  if (b.id === 'isimOku') komut('ayar', { k: 'isimOku', v: !d.ayar.isimOku });
+  if (b.id === 'tts') komut('tts', !d.sunucu.tts);
+  if (b.id === 'sim') ws.send(JSON.stringify({ tip: 'test', olay: 'sim' }));
+  if (b.id === 'senaryoSec') komut('senaryo', $('senaryo').value);
+  if (b.id === 'anlatGonder' && $('anlat').value.trim()) { komut('anlat', $('anlat').value.trim()); $('anlat').value = ''; }
+});
+$('soruOku').addEventListener('change', e => komut('ayar', { k: 'soruOku', v: e.target.value }));
+const v = $('vampir');
+const goster = e => { e.preventDefault(); if (d) v.textContent = '🦇 ' + (d.karakterler.find(x => x.id === d.vampir)?.ad || '?') + ' · ' + (d.ters || ''); };
+const gizle = () => { v.textContent = '👁 Vampir kim? (basılı tut)'; };
+v.addEventListener('pointerdown', goster); v.addEventListener('pointerup', gizle); v.addEventListener('pointerleave', gizle); v.addEventListener('contextmenu', e => e.preventDefault());
+baglan();
+</script>
+</body>
+</html>
